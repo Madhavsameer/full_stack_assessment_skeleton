@@ -1,3 +1,7 @@
+# Demo
+
+https://github.com/user-attachments/assets/1e5f351e-7318-490f-a995-b9649c540801
+
 # Introduction - how to read this doc
 
 - This exercise is designed to test basic skills in 3 core areas:
@@ -35,8 +39,7 @@
 
 ## 0. Setup
 
-- fork this repository, you'll be committing all your changes to the forked repo
-- clone the fork locally to develop
+- Download or clone the fork locally
 
 ```bash
 git clone https://github.com/<username>/full_stack_assessment_skeleton.git
@@ -49,9 +52,8 @@ git clone https://github.com/<username>/full_stack_assessment_skeleton.git
 - this db instance has some data that will be needed for the exercise, included in it
 
 ```bash
-docker-compose -f docker-compose.initial.yml up --build -d
+ docker-compose -f docker-compose.final.yml up --build -d
 ```
-
 - the containerized db listens on `localhost:3306`
 - the docker compose file has the credentials you will need
 
@@ -63,8 +65,82 @@ docker-compose -f docker-compose.initial.yml up --build -d
 
 ![mysql creds](images/mysql_creds.png)
 
+- You can view the logs of the MySQL container to check if it started correctly and without errors
+
+```bash
+docker logs <container_id_or_name>
+```
+- You can connect to the MySQL database from within the container or from a MySQL client on your host machine
+
+```bash
+docker exec -it <container_id_or_name> mysql -u db_user -p
+```
+- Enter the password when prompted. Once connected, you can check the database and table status:
+
 - the database is `home_db`, user `db_user` has full read-write access to it
-- `home_db.user_home` table has some data populated in it
+- `homes`, `users`, `userhomes` tables have some data populated in it
+
+### backend
+
+- Go inside the backend folder and execute the following command:
+
+```
+npm install
+```
+
+- To run the server execute
+
+```
+npm start
+```
+
+### frontend
+
+- Go inside the frontend folder and execute the following command:
+
+```
+npm install
+```
+
+- To run the client execute
+
+```
+npm run dev
+```
+### Folder Structure - Backend
+
+`src` -> Inside the src folder all the actual source code regarding the project will reside, this will not include any kind of tests.
+
+Lets take a look inside the `src` folder
+
+ - `config` -> In this folder anything and everything regarding any configurations or setup of a library or module will be done. For example: setting up `dotenv` so that we can use the environment variables anywhere in a cleaner fashion, this is done in the `server-config.js`. One more example can be to setup you logging library that can help you to prepare meaningful logs, so configuration for this library should also be done here. 
+
+ - `routes` -> In the routes folder, we register a route and the corresponding middleware and controllers to it. 
+
+ - `middlewares` -> they are just going to intercept the incoming requests where we can write our validators, authenticators etc. 
+
+ - `controllers` -> they are kind of the last middlewares as post them you call you business layer to execute the budiness logic. In controllers we just receive the incoming requests and data and then pass it to the business layer, and once business layer returns an output, we structure the API response in controllers and send the output. 
+
+ - `repositories` -> this folder contains all the logic using which we interact the DB by writing queries, all the raw queries or ORM queries will go here.
+
+ - `services` -> contains the buiness logic and interacts with repositories for data from the database
+
+ - `utils` -> contains helper methods, error classes etc.
+
+ - `public` -> contains the static files.
+
+ ### Folder Structure - Frontend
+
+ `src` -> Inside the src folder all the actual source code regarding the project will reside, this will not include any kind of tests.
+
+Lets take a look inside the `src` folder
+
+ - `components` -> This folder contains all the reusable UI components.
+ - `constants` -> contains constant variables.
+ - `hooks` -> contains custom hooks'.
+ - `redux` -> contains all Redux-related code for state management.
+ - `utils` -> contains helper methods and constant etc.
+
 
 ## 1. Database
 
@@ -129,7 +205,18 @@ docker-compose -f docker-compose.initial.yml up --build -d
 
 ### solution
 
-> explain briefly your solution for this problem here
+- **Creating the users table**:
+- This table will store unique user-related attributes (username, email)
+- username is unique can be set as primarykey but for simplicity keeping an id as primarykey
+
+- **Creating the home table**:
+- This table will store home-related attributes (street_address, state, zip, sqft, beds, baths, list_price)
+- street_address unique can be set as primarykey but for simplicity keeping an id as primarykey
+
+- **Creating the userhomes table**:
+- This table will create a many-to-many relationship between users and homes
+- It will contain two foreign keys: user_id referencing the users table and homes_id referencing the homes table.
+- Together, these two columns will form a composite primary key to ensure that each user-home pair is unique.
 
 ## 2. React SPA
 
@@ -220,7 +307,21 @@ docker-compose -f docker-compose.initial.yml up --build -d
 
 ### solution
 
-> explain briefly your solution for this problem here
+- Dropdown Component: Developed a user selection dropdown, dynamically populated when users are available.
+
+- HomeCard Container: Created a container to display home cards corresponding to the selected user from the dropdown.
+
+- EditUserModal: Implemented a modal that appears when the "Edit User" button is clicked on a home card. The modal displays checkboxes for all users associated with the selected home, with relevant users pre-checked. Users can toggle these checkboxes to modify the associations. "Cancel" closes the modal without saving changes, while "Save" updates the database, closes the modal, and refreshes the "Homes for User" page. Homes will be reassigned based on the updated user associations.
+
+- Pagination Feature: Added pagination allowing users to navigate to specific pages, as well as to the next and previous pages.
+
+- Loading, Spinners, and Error Handling: Properly implemented loaders, spinners, and error handling, ensuring a seamless user experience.
+
+- Custom Hooks: Developed custom hooks for data fetching using Axios, ensuring components are focused solely on data presentation.
+
+- State Management: Utilized Redux Toolkit for state management, handling loading states and errors locally.
+
+- Tailwind CSS: Styled the entire user interface using Tailwind CSS for a modern and responsive design.
 
 ## 3. Backend API development on Node
 
@@ -281,8 +382,18 @@ docker-compose -f docker-compose.initial.yml up --build -d
 
 ### solution
 
-> explain briefly your solution for this problem here
+ - **/user/find-all**
+    -  Fetches and returns all users from the user table.
 
+  - **/home/find-by-user**
+    - Retrieves homes with a page size of 50, considering the many-to-many association with userId using Sequelize.
+  
+  - **/user/find-by-home**
+    - Retrieves a specific home record by its ID, along with all associated users. Returns this combined information, omitting any extra details from the join table that connects homes 
+       and users.
+
+  - **/home/update-users**
+    - Finds homes and users by their given IDs and updates the users associated with a home using Sequelize's built-in set function for associations. This operation automatically mutates the database to reflect the new set of users related to the home. All operations are wrapped in a transaction to ensure atomicity.
 ## Submission Guidelines
 
 - once you're done with [DB](#1-database), [frontend](#2-react-spa), [backend](#3-backend-api-development-on-node) it's time to submit your solution :smiley:
